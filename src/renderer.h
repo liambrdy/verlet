@@ -8,7 +8,6 @@
 
 typedef enum {
     UNIFORM_SLOT_RESOLUTION = 0,
-    UNIFORM_SLOT_RADIUS,
     COUNT_UNIFORM_SLOT
 } UniformSlot;
 

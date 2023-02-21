@@ -87,8 +87,12 @@ int main() {
 
         rendererUse(&renderer);
         glUniform2f(renderer.uniforms[UNIFORM_SLOT_RESOLUTION], (float) w, (float) h);
-        glUniform1f(renderer.uniforms[UNIFORM_SLOT_RADIUS], 1.0f);
-        rendererRectCentered(&renderer, vec2fs(0.0f), vec2fs(300.0f), vec4f(1.0f, 0.0f, 0.0f, 1.0f));
+
+        for (int y = 0; y < 10; y++) {
+            for (int x = 0; x < 10; x++) {
+                rendererRectCentered(&renderer, vec2f(x*(WINDOW_WIDTH/10)-WINDOW_WIDTH/2, y*(WINDOW_WIDTH/10)-WINDOW_HEIGHT/2), vec2fs(WINDOW_HEIGHT/10), vec4f(1.0f, 0.0f, 0.0f, 1.0f));
+            }
+        }
 
         rendererFlush(&renderer);
 
