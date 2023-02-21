@@ -31,7 +31,7 @@ typedef struct {
     float radius;
 } Object;
 
-#define OBJECT_CAP 100
+#define OBJECT_CAP 1000
 
 static Renderer renderer = {0};
 static Object objects[OBJECT_CAP] = {0};
@@ -63,7 +63,7 @@ void applyConstraint(Object *obj, Vec2f cPosition, float cRadius) {
 }
 
 void checkCollisions(Object *objects, size_t objectCount) {
-    const float responseCoef = 0.1f;
+    const float responseCoef = 0.75f;
     for (size_t i = 0; i < objectCount; i++) {
         Object obj1 = objects[i];
         for (size_t j = i + 1; j < objectCount; j++) {
@@ -76,9 +76,9 @@ void checkCollisions(Object *objects, size_t objectCount) {
                 const Vec2f n = vec2fDiv(v, vec2fs(dist));
                 const float massRatio1 = obj1.radius / (obj1.radius + obj2.radius);
                 const float massRatio2 = obj2.radius / (obj1.radius + obj2.radius);
-                const float delta = 0.5f * responseCoef * (dist - minDist);
-                objects[i].positionCurrent = vec2fSub(obj1.positionCurrent, vec2fMul(n, vec2fs(massRatio2 * delta)));
-                objects[j].positionCurrent = vec2fAdd(obj2.positionCurrent, vec2fMul(n, vec2fs(massRatio1 * delta)));
+                const float delta = 0.5f * (dist - minDist);
+                objects[i].positionCurrent = vec2fSub(objects[i].positionCurrent, vec2fMul(n, vec2fs(massRatio2 * delta)));
+                objects[j].positionCurrent = vec2fAdd(objects[j].positionCurrent, vec2fMul(n, vec2fs(massRatio1 * delta)));
             }
         }
     }
@@ -164,12 +164,12 @@ int main() {
             }
         }
 
-        // Uint32 spawnerNow = SDL_GetTicks();
-        // if (spawnerNow - spawnerTimer > 500 && objectCount < OBJECT_CAP) {
-        //     Object obj = newObject(vec2f(200.0f, 0.0f), 10.0f);
-        //     objects[objectCount++] = obj;
-        //     spawnerTimer = spawnerNow;
-        // }
+        Uint32 spawnerNow = SDL_GetTicks();
+        if (spawnerNow - spawnerTimer > 200 && objectCount < OBJECT_CAP) {
+            Object obj = newObject(vec2f(200.0f, 0.0f), 10.0f);
+            objects[objectCount++] = obj;
+            spawnerTimer = spawnerNow;
+        }
 
         glClearColor(0.0f, 0.15f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -184,8 +184,8 @@ int main() {
         drawCircle(&renderer, position, radius, vec4f(0.7f, 0.2f, 0.2f, 0.4f));
 
         for (size_t i = 0; i < objectCount; i++) {
-            const int subSteps = 8;
-            const float subDt = dt / (float) subSteps;
+            const int subSteps = 2;
+            const float subDt = DELTA_TIME / (float) subSteps;
 
             for (int j = subSteps; j--; ) {
                 const Vec2f gravity = vec2f(0.0f, -1000.0f);
