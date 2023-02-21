@@ -54,5 +54,6 @@ void rendererQuad(Renderer *r,
                   Vec2f uv0, Vec2f uv1, Vec2f uv2, Vec2f uv3,
                   Vec4f c0, Vec4f c1, Vec4f c2, Vec4f c3);
 void rendererRect(Renderer *r, Vec2f p, Vec2f size, Vec4f c);
+void rendererRectCentered(Renderer *r, Vec2f p, Vec2f size, Vec4f c);
 
 #endif

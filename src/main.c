@@ -63,6 +63,9 @@ int main() {
         fprintf(stderr, "WARNING! GLEW_ARB_debug_output is not available\n");
     }
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     rendererInit(&renderer);
 
     bool running = true;
@@ -84,7 +87,8 @@ int main() {
 
         rendererUse(&renderer);
         glUniform2f(renderer.uniforms[UNIFORM_SLOT_RESOLUTION], (float) w, (float) h);
-        rendererRect(&renderer, vec2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2), vec2fs(100.0f), vec4f(1.0f, 0.0f, 0.0f, 1.0f));
+        glUniform1f(renderer.uniforms[UNIFORM_SLOT_RADIUS], 1.0f);
+        rendererRectCentered(&renderer, vec2fs(0.0f), vec2fs(300.0f), vec4f(1.0f, 0.0f, 0.0f, 1.0f));
 
         rendererFlush(&renderer);
 

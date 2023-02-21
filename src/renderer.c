@@ -192,7 +192,7 @@ void rendererQuad(Renderer *r,
                   Vec2f uv0, Vec2f uv1, Vec2f uv2, Vec2f uv3,
                   Vec4f c0, Vec4f c1, Vec4f c2, Vec4f c3) {
     rendererTriangle(r, p0, p1, p2, uv0, uv1, uv2, c0, c1, c2);
-    rendererTriangle(r, p2, p3, p0, uv2, uv3, uv0, c2, c3, c0);
+    rendererTriangle(r, p1, p2, p3, uv1, uv2, uv3, c1, c2, c3);
 }
 
 void rendererRect(Renderer *r, Vec2f p, Vec2f s, Vec4f c) {
@@ -200,7 +200,15 @@ void rendererRect(Renderer *r, Vec2f p, Vec2f s, Vec4f c) {
     rendererQuad(
         r,
         p, vec2fAdd(p, vec2f(s.x, 0)), vec2fAdd(p, vec2f(0, s.y)), vec2fAdd(p, s),
-        uv, uv, uv, uv,
+        uv, vec2fAdd(uv, vec2f(1.0, 0)), vec2fAdd(uv, vec2f(0, 1.0)), vec2fAdd(uv, vec2fs(1.0)),
         c, c, c, c
+    );
+}
+
+void rendererRectCentered(Renderer *r, Vec2f p, Vec2f size, Vec4f c) {
+    rendererRect(
+        r,
+        vec2fSub(p, vec2fDiv(size, vec2fs(2.0))),
+        size, c
     );
 }
