@@ -8,6 +8,20 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+void GLAPIENTRY MessageCallback(GLenum source,
+                                GLenum type,
+                                GLuint id,
+                                GLenum severity,
+                                GLsizei length,
+                                const GLchar* message,
+                                const void* userParam) {
+    (void) source;
+    (void) id;
+    (void) length;
+    (void) userParam;
+    fprintf(stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n", (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : ""), type, severity, message);
+}
+
 static Renderer renderer = {0};
 
 int main() {
@@ -42,6 +56,13 @@ int main() {
         fprintf(stderr, "ERROR: Failed to initalize glew\n");
     }
 
+    if (GLEW_ARB_debug_output) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glDebugMessageCallback(MessageCallback, 0);
+    } else {
+        fprintf(stderr, "WARNING! GLEW_ARB_debug_output is not available\n");
+    }
+
     rendererInit(&renderer);
 
     bool running = true;
@@ -63,7 +84,7 @@ int main() {
 
         rendererUse(&renderer);
         glUniform2f(renderer.uniforms[UNIFORM_SLOT_RESOLUTION], (float) w, (float) h);
-        rendererRect(&renderer, vec2f(0, 0), vec2fs(2.0f), vec4f(1.0f, 0.0f, 0.0f, 1.0f));
+        rendererRect(&renderer, vec2f(WINDOW_WIDTH/2, WINDOW_HEIGHT/2), vec2fs(100.0f), vec4f(1.0f, 0.0f, 0.0f, 1.0f));
 
         rendererFlush(&renderer);
 

@@ -192,7 +192,7 @@ void rendererQuad(Renderer *r,
                   Vec2f uv0, Vec2f uv1, Vec2f uv2, Vec2f uv3,
                   Vec4f c0, Vec4f c1, Vec4f c2, Vec4f c3) {
     rendererTriangle(r, p0, p1, p2, uv0, uv1, uv2, c0, c1, c2);
-    rendererTriangle(r, p1, p2, p0, uv1, uv2, uv0, c1, c2, c0);
+    rendererTriangle(r, p2, p3, p0, uv2, uv3, uv0, c2, c3, c0);
 }
 
 void rendererRect(Renderer *r, Vec2f p, Vec2f s, Vec4f c) {

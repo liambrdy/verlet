@@ -16,6 +16,6 @@ vec2 projectPoint(vec2 p) {
 void main() {
     gl_Position = vec4(projectPoint(position), 0.0, 1.0);
 
-    fragColor = fragColor;
+    fragColor = color;
     fragUv = uv;
 }
