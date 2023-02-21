@@ -28,9 +28,10 @@ typedef struct {
     Vec2f positionOld;
     Vec2f positionCurrent;
     Vec2f acceleration;
+    float radius;
 } Object;
 
-#define OBJECT_CAP 10
+#define OBJECT_CAP 100
 
 static Renderer renderer = {0};
 static Object objects[OBJECT_CAP] = {0};
@@ -38,6 +39,58 @@ static size_t objectCount = 0;
 
 void drawCircle(Renderer *r, Vec2f c, float radius, Vec4f color) {
     rendererRectCentered(r, c, vec2fs(radius*2.0), color);
+}
+
+void updatePosition(Object *obj, float dt) {
+    const Vec2f velocity = vec2fSub(obj->positionCurrent, obj->positionOld);
+    obj->positionOld = obj->positionCurrent;
+    Vec2f dtAcceleration = vec2fMul(obj->acceleration, vec2fs(dt*dt));
+    obj->positionCurrent = vec2fAdd(obj->positionCurrent, vec2fAdd(velocity, dtAcceleration));
+    obj->acceleration = vec2fs(0.0f);
+}
+
+void accelerate(Object *obj, Vec2f acc) {
+    obj->acceleration = vec2fAdd(obj->acceleration, acc);
+}
+
+void applyConstraint(Object *obj, Vec2f cPosition, float cRadius) {
+    const Vec2f toObj = vec2fSub(cPosition, obj->positionCurrent);
+    const float dist = sqrtf(toObj.x*toObj.x + toObj.y*toObj.y);
+    if (dist > cRadius - obj->radius) {
+        const Vec2f n = vec2fDiv(toObj, vec2fs(dist));
+        obj->positionCurrent = vec2fSub(cPosition, vec2fMul(n, vec2fs(cRadius - obj->radius)));
+    }
+}
+
+void checkCollisions(Object *objects, size_t objectCount) {
+    const float responseCoef = 0.1f;
+    for (size_t i = 0; i < objectCount; i++) {
+        Object obj1 = objects[i];
+        for (size_t j = i + 1; j < objectCount; j++) {
+            Object obj2 = objects[j];
+            const Vec2f v = vec2fSub(obj1.positionCurrent, obj2.positionCurrent);
+            const float dist2 = v.x*v.x + v.y*v.y;
+            const float minDist = obj1.radius + obj2.radius;
+            if (dist2 < minDist*minDist) {
+                const float dist = sqrtf(dist2);
+                const Vec2f n = vec2fDiv(v, vec2fs(dist));
+                const float massRatio1 = obj1.radius / (obj1.radius + obj2.radius);
+                const float massRatio2 = obj2.radius / (obj1.radius + obj2.radius);
+                const float delta = 0.5f * responseCoef * (dist - minDist);
+                objects[i].positionCurrent = vec2fSub(obj1.positionCurrent, vec2fMul(n, vec2fs(massRatio2 * delta)));
+                objects[j].positionCurrent = vec2fAdd(obj2.positionCurrent, vec2fMul(n, vec2fs(massRatio1 * delta)));
+            }
+        }
+    }
+}
+
+Object newObject(Vec2f pos, float radius) {
+    return (Object) {
+        .positionCurrent = pos,
+        .positionOld = pos,
+        .acceleration = vec2fs(0.0f),
+        .radius = radius
+    };
 }
 
 int main() {
@@ -84,14 +137,13 @@ int main() {
 
     rendererInit(&renderer);
 
-    Object object = {0};
-    object.positionCurrent = vec2f(0.0f, 0.0f);
-    object.positionOld = vec2f(0.0f, 0.0f);
-    objects[objectCount++] = object;
-
     Uint64 now = SDL_GetPerformanceCounter();
     Uint64 last = 0;
     float dt = DELTA_TIME;
+
+    int w, h;
+
+    Uint32 spawnerTimer = SDL_GetTicks();
 
     bool running = true;
     while (running) {
@@ -102,42 +154,48 @@ int main() {
                 case SDL_QUIT: {
                     running = false;
                 } break;
+
+                case SDL_MOUSEBUTTONDOWN: {
+                    if (objectCount < OBJECT_CAP) {
+                        Object obj = newObject(vec2f((float) event.button.x - w/2, (float) h - event.button.y - h/2), 10.0f);
+                        objects[objectCount++] = obj;
+                    }
+                } break;
             }
         }
+
+        // Uint32 spawnerNow = SDL_GetTicks();
+        // if (spawnerNow - spawnerTimer > 500 && objectCount < OBJECT_CAP) {
+        //     Object obj = newObject(vec2f(200.0f, 0.0f), 10.0f);
+        //     objects[objectCount++] = obj;
+        //     spawnerTimer = spawnerNow;
+        // }
 
         glClearColor(0.0f, 0.15f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        int w, h;
         SDL_GetWindowSize(window, &w, &h);
 
         rendererUse(&renderer);
         glUniform2f(renderer.uniforms[UNIFORM_SLOT_RESOLUTION], (float) w, (float) h);
 
         const Vec2f position = vec2fs(0.0f);
-        const float radius = 300.0f;
+        const float radius = 250.0f;
         drawCircle(&renderer, position, radius, vec4f(0.7f, 0.2f, 0.2f, 0.4f));
 
         for (size_t i = 0; i < objectCount; i++) {
-            Object obj = objects[i];
+            const int subSteps = 8;
+            const float subDt = dt / (float) subSteps;
 
-            const Vec2f gravity = vec2f(0.0f, -100.0f);
-            objects[i].acceleration = vec2fAdd(objects[i].acceleration, gravity);
-
-            const Vec2f toObj = vec2fSub(obj.positionCurrent, position);
-            const float dist = sqrtf(toObj.x*toObj.x + toObj.y*toObj.y);
-            if (dist > radius - 50.0f) {
-                const Vec2f n = vec2fDiv(toObj, vec2fs(dist));
-                objects[i].positionCurrent = vec2fAdd(position, vec2fMul(n, vec2fs(radius - 50.0f)));
+            for (int j = subSteps; j--; ) {
+                const Vec2f gravity = vec2f(0.0f, -1000.0f);
+                accelerate(&objects[i], gravity);
+                applyConstraint(&objects[i], position, radius);
+                checkCollisions(objects, objectCount);
+                updatePosition(&objects[i], subDt);
             }
 
-            const Vec2f velocity = vec2fSub(objects[i].positionCurrent, objects[i].positionOld);
-            objects[i].positionOld = objects[i].positionCurrent;
-            Vec2f dtAcceleration = vec2fMul(objects[i].acceleration, vec2fs(dt*dt));
-            objects[i].positionCurrent = vec2fAdd(objects[i].positionCurrent, vec2fAdd(velocity, dtAcceleration));
-            objects[i].acceleration = vec2fs(0.0f);
-
-            drawCircle(&renderer, objects[i].positionCurrent, 50.0f, vec4fs(1.0f));
+            drawCircle(&renderer, objects[i].positionCurrent, objects[i].radius, vec4fs(1.0f));
         }
 
         rendererFlush(&renderer);
