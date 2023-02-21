@@ -1,6 +1,7 @@
 #ifndef RENDERER_H_
 #define RENDERER_H_
 
+#define GLEW_STATIC
 #include <GL/glew.h>
 
 #include "vec.h"

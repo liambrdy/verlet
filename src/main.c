@@ -22,6 +22,17 @@ int main() {
         return 1;
     }
 
+    {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+        int major, minor;
+        SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &major);
+        SDL_GL_GetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, &minor);
+        printf("GL version %d.%d\n", major, minor);
+    }
+
     if (SDL_GL_CreateContext(window) == NULL) {
         fprintf(stderr, "ERROR: Failed to create opengl context: %s\n", SDL_GetError());
         return 1;

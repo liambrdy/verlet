@@ -18,6 +18,7 @@ char *readEntireFile(const char *fileName) {
     rewind(f);
 
     char *buffer = malloc(size + 1);
+    memset(buffer, 0, size + 1);
     fread(buffer, size, 1, f);
     buffer[size] = '\0';
 

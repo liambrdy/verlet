@@ -3,7 +3,7 @@
 curl -fsSL -o SDL2-devel-2.26.3-VC.zip https://www.libsdl.org/release/SDL2-devel-2.26.3-VC.zip
 tar -xf SDL2-devel-2.26.3-VC.zip
 if not exist dependencies\ mkdir dependencies\
-move SDL2-2.0.12 dependencies\SDL2
+move SDL2-2.26.3 dependencies\SDL2
 del SDL2-devel-2.26.3-VC.zip
 if not exist dependencies\SDL2\temp\ mkdir dependencies\SDL2\temp\
 move dependencies\SDL2\include dependencies\SDL2\temp\SDL2
