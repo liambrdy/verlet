@@ -11,7 +11,7 @@ INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 
 LIBS := sdl2 glew
-LDFLAGS ?= `pkg-config --libs $(LIBS)`
+LDFLAGS ?= -lm `pkg-config --libs $(LIBS)`
 
 CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -ggdb `pkg-config --cflags $(LIBS)`
 

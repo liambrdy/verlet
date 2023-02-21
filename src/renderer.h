@@ -24,7 +24,7 @@ typedef struct {
     Vec4f color;
 } Vertex;
 
-#define RENDERER_VERTEX_BUFFER_CAP (3*800*1024)
+#define RENDERER_VERTEX_BUFFER_CAP (3*600*1024)
 
 typedef struct {
     GLuint vao;
