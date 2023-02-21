@@ -137,6 +137,18 @@ int main() {
 
     rendererInit(&renderer);
 
+#define STRING_CAP 50
+    Object string[STRING_CAP] = {0};
+    size_t stringCount = 0;
+
+    Object headString = newObject(vec2fs(0.0f), 10.0f);
+    string[stringCount++] = headString;
+
+    for (int i = 0; i < 10; i++) {
+        Object next = newObject(vec2f(30.0f * (i+1), 0.0f), 10.0f);
+        string[stringCount++] = next;
+    }
+
     Uint64 now = SDL_GetPerformanceCounter();
     Uint64 last = 0;
     float dt = DELTA_TIME;
@@ -164,12 +176,12 @@ int main() {
             }
         }
 
-        Uint32 spawnerNow = SDL_GetTicks();
-        if (spawnerNow - spawnerTimer > 200 && objectCount < OBJECT_CAP) {
-            Object obj = newObject(vec2f(200.0f, 0.0f), 10.0f);
-            objects[objectCount++] = obj;
-            spawnerTimer = spawnerNow;
-        }
+        // Uint32 spawnerNow = SDL_GetTicks();
+        // if (spawnerNow - spawnerTimer > 200 && objectCount < OBJECT_CAP) {
+        //     Object obj = newObject(vec2f(200.0f, 0.0f), 10.0f);
+        //     objects[objectCount++] = obj;
+        //     spawnerTimer = spawnerNow;
+        // }
 
         glClearColor(0.0f, 0.15f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -183,19 +195,36 @@ int main() {
         const float radius = 250.0f;
         drawCircle(&renderer, position, radius, vec4f(0.7f, 0.2f, 0.2f, 0.4f));
 
-        for (size_t i = 0; i < objectCount; i++) {
+        for (size_t i = 0; i < stringCount; i++) {
             const int subSteps = 2;
             const float subDt = DELTA_TIME / (float) subSteps;
 
             for (int j = subSteps; j--; ) {
                 const Vec2f gravity = vec2f(0.0f, -1000.0f);
-                accelerate(&objects[i], gravity);
-                applyConstraint(&objects[i], position, radius);
-                checkCollisions(objects, objectCount);
-                updatePosition(&objects[i], subDt);
+                accelerate(&string[i], gravity);
+                //applyConstraint(&objects[i], position, radius);
+
+                if (i == 0) {
+                    string[i].positionCurrent = vec2fs(0.0f);
+                } else if (i == 1) {
+                    Vec2f diff = vec2fSub(string[i-1].positionCurrent, string[i].positionCurrent);
+                    float dist = sqrtf(diff.x*diff.x + diff.y*diff.y);
+                    Vec2f n = vec2fDiv(diff, vec2fs(dist));
+                    string[i].positionCurrent = vec2fAdd(string[i].positionCurrent, vec2fMul(n, vec2fs((dist - 30.0f))));
+                } else {
+                    Vec2f diff = vec2fSub(string[i-1].positionCurrent, string[i].positionCurrent);
+                    float dist = sqrtf(diff.x*diff.x + diff.y*diff.y);
+                    Vec2f n = vec2fDiv(diff, vec2fs(dist));
+                    string[i].positionCurrent = vec2fAdd(string[i].positionCurrent, vec2fMul(n, vec2fs(0.5f*(dist - 30.0f))));
+                    string[i-1].positionCurrent = vec2fSub(string[i-1].positionCurrent, vec2fMul(n, vec2fs(0.5f*(dist - 30.0f))));
+                }
+                
+
+                //checkCollisions(string, stringCount);
+                updatePosition(&string[i], subDt);
             }
 
-            drawCircle(&renderer, objects[i].positionCurrent, objects[i].radius, vec4fs(1.0f));
+            drawCircle(&renderer, string[i].positionCurrent, string[i].radius, vec4fs(1.0f));
         }
 
         rendererFlush(&renderer);
